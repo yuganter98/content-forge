@@ -31,8 +31,14 @@ async function processNextArticle() {
             return;
         }
 
-        // Find the first article that is NOT already enhanced
-        article = articles.find(a => !a.title.startsWith('[Enhanced]'));
+
+        // Filter out articles that have already been enhanced (by checking if a matching [Enhanced] title exists)
+        const enhancedTitles = new Set(articles.filter(a => a.title.startsWith('[Enhanced] ')).map(a => a.title));
+
+        article = articles.find(a =>
+            !a.title.startsWith('[Enhanced] ') &&
+            !enhancedTitles.has(`[Enhanced] ${a.title}`)
+        );
 
         if (!article) {
             console.log("All articles are already enhanced. Waiting...");
@@ -124,7 +130,7 @@ async function processNextArticle() {
         await axios.post(`${API_BASE_URL}/articles`, {
             title: newTitle,
             content: newContent,
-            source_url: `https://beyondchats.com/enhanced-${article.id}`,
+            source_url: article.source_url || 'https://beyondchats.com',
             published_at: new Date().toISOString()
         });
 
