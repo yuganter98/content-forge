@@ -8,12 +8,24 @@ if [ ! -f /var/www/database/database.sqlite ]; then
 fi
 
 
+
 # FORCE IPv4 Resolution for Supabase (Fixes Render IPv6 error)
 if [ "$DB_CONNECTION" = "pgsql" ] && [ -n "$DB_HOST" ]; then
-    echo "Resolving IPv4 for $DB_HOST..."
-    export DB_HOST=$(php -r "echo gethostbyname('$DB_HOST');")
-    echo "Resolved DB_HOST to: $DB_HOST"
+    echo "Attempting to resolve IPv4 for: $DB_HOST"
+    
+    # Try using PHP gethostbyname as it is strictly IPv4
+    RESOLVED_IP=$(php -r "echo gethostbyname('$DB_HOST');")
+    
+    if [ "$RESOLVED_IP" != "$DB_HOST" ]; then
+        echo "Success! Resolved to IPv4: $RESOLVED_IP"
+        export DB_HOST="$RESOLVED_IP"
+    else
+        echo "Warning: gethostbyname returned the hostname. Resolution failed or no IPv4 found."
+    fi
 fi
+
+# Clear config cache to ensure env vars are picked up
+php artisan config:clear
 
 # Run migrations
 echo "Running migrations..."
