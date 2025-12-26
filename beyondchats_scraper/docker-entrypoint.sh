@@ -31,10 +31,6 @@ php artisan config:clear
 echo "Running migrations..."
 php artisan migrate --force
 
-# Seed Data (Temporary: Run Scraper once)
-echo "Seeding data..."
-php artisan scrape:beyondchats
-
 # Start the application
 echo "Starting application..."
 exec "$@"
