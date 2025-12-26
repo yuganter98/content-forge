@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # 1. Laravel API & Scraper
+  backend:
+    build: ./beyondchats_scraper
+    container_name: beyondchats_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./beyondchats_scraper:/var/www
+      - sqlite_data:/var/www/database
+    networks:
+      - beyondchats-network
+
+  # 2. React Frontend
+  frontend:
+    build: ./article_frontend
+    container_name: beyondchats_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - beyondchats-network
+
+  # 3. Article Enhancer (Worker)
+  enhancer:
+    build: ./article_enhancer
+    container_name: beyondchats_enhancer
+    # Mount .env so user can change keys easily
+    volumes:
+      - ./article_enhancer/.env:/app/.env
+    # To talk to the backend, we use the service name "backend" instead of localhost
+    environment:
+      - API_BASE_URL=http://backend:8000/api
+      # For Local LLM (Host Networking is tricky in Docker for Windows/Mac)
+      # If using LM Studio on Host: use host.docker.internal
+      - SITE_URL=http://host.docker.internal:1234/v1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend
+    networks:
+      - beyondchats-network
+
+volumes:
+  sqlite_data:
+
+networks:
+  beyondchats-network:
+    driver: bridge
