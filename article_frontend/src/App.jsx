@@ -3,8 +3,8 @@ import axios from 'axios';
 import ArticleCard from './components/ArticleCard';
 import { FaBolt } from 'react-icons/fa';
 
-// URL Config (Updated for LAN Access)
-const API_URL = 'http://192.168.1.11:8000/api/articles';
+// URL Config (Dynamic for Production)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/articles';
 
 import ArticleModal from './components/ArticleModal';
 
